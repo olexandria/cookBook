@@ -10,7 +10,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all().order_by("name")
     serializer_class = RecipeSerializer
 
-    def get(request, pk=None):
+    def get(self, request, pk=None):
         if pk:
             recipe = get_object_or_404(Recipe.objects.all(), pk=pk)
             serializer = RecipeSerializer(recipe)
