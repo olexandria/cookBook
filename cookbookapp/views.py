@@ -7,44 +7,39 @@ from .serializers import RecipeSerializer, IngredientSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all().order_by("name")
+    queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
 
-    def get(self, request, pk=None):
-        if pk:
-            recipe = get_object_or_404(Recipe.objects.all(), pk=pk)
-            serializer = RecipeSerializer(recipe)
-            return Response({"recipe": serializer.data})
-        recipe = Recipe.objects.all()
-        serializer = RecipeSerializer(recipe, many=True)
-        return Response({"recipes": serializer.data})
+    def list(self, request):
+        queryset = Recipe.objects.all()
+        serializer = RecipeSerializer(queryset, many=True)
+        return Response(serializer.data)
 
-    def post(self, request):
-        recipe = request.data.get("recipe")
-        serializer = RecipeSerializer(data=recipe)
-        if serializer.is_valid(raise_exception=True):
-            recipe_saved = serializer.save()
-        return Response(
-            {"success": "Recipe '{}' created successfully".format(recipe_saved.title)}
-        )
+    def retrieve(self, request, pk=None):
+        queryset = Recipe.objects.all()
+        recipe = get_object_or_404(queryset, pk=pk)
+        serializer = RecipeSerializer(recipe)
+        return Response(serializer.data)
 
-    def put(self, request, pk):
-        saved_recipe = get_object_or_404(Recipe.objects.all(), pk=pk)
-        data = request.data.get("recipe")
-        serializer = RecipeSerializer(instance=saved_recipe, data=data, partial=True)
+    def create(self, request):
+        serializer = RecipeSerializer(data=request.data)
 
-        if serializer.is_valid(raise_exception=True):
-            recipe_saved = serializer.save()
-        return Response(
-            {"success": "Recipe '{}' updated successfully".format(recipe_saved.title)}
-        )
+        if serializer.is_valid():
+            serializer.save()
+        return Response(serializer.data)
 
-    def delete(self, request, pk):
-        recipe = get_object_or_404(Recipe.objects.all(), pk=pk)
+    def update(self, request, pk=None):
+        recipes = Recipe.objects.get(id=pk)
+        serializer = RecipeSerializer(instance=recipes, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+        return Response(serializer.data)
+
+    def destroy(self, request, pk=None):
+        recipe = Recipe.objects.get(id=pk)
         recipe.delete()
-        return Response(
-            {"message": "Recipe with id `{}` has been deleted.".format(pk)}, status=204
-        )
+        return Response("Recipe successfully delete!")
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
