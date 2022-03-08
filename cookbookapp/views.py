@@ -1,9 +1,22 @@
 from rest_framework import viewsets
+from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
 from .models import Recipe, Ingredient
 from .serializers import RecipeSerializer, IngredientSerializer
+
+
+@api_view(["GET"])
+def apiOverview(request):
+    api_urls = {
+        "Recipes": "/recipes/",
+        "Recipe Detail": "recipes/<int:pk>/",
+        "Create": "/create/",
+        "Update": "recipes/<int:pk>/update/",
+        "Delete": "recipes/<int:pk>/delete/",
+    }
+    return Response(api_urls)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
