@@ -9,12 +9,18 @@ from rest_framework.test import APIClient
 
 from cookbookapp.models import Recipe, Ingredient
 from cookbookapp.serializers import RecipeSerializer
+from cookbookapp.tests.factories import RecipeFactory
 
-RECIPES_URL = reverse("recipe-list")
 
+class RecipeApiTestsWithFactories(TestCase):
+    def test_create_basic_recipe(self):
+        recipe = RecipeFactory()
 
-def detail_url(recipe_id):
-    return reverse("recipe-detail", args=[recipe_id])
+        res = self.client.get(reverse("recipe-list"))
+        serializer = RecipeSerializer(recipe)
+        print(serializer.data)
+        self.assertEqual(200, res.status_code)
+        self.assertContains(res, recipe.name)
 
 
 class RecipeApiTests(TestCase):
@@ -28,7 +34,7 @@ class RecipeApiTests(TestCase):
             "steps": "1. Cook, 2. Eat",
             "ingredients": [],
         }
-        res = self.client.post(RECIPES_URL, payload, format="json")
+        res = self.client.post(reverse("recipe-list"), payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
     def test_view_recipe_detail(self):
@@ -38,8 +44,7 @@ class RecipeApiTests(TestCase):
             steps="1. Cook, 2. Eat",
         )
 
-        url = detail_url(recipe.id)
-        res = self.client.get(url)
+        res = self.client.get(reverse("recipe-detail", args=[recipe.id]))
 
         serializer = RecipeSerializer(recipe)
         self.assertEqual(res.data, serializer.data)
@@ -52,7 +57,7 @@ class RecipeApiTests(TestCase):
             "ingredients": [{"name": "jfskj", "amount": "1000 kg"}],
         }
 
-        res = self.client.post(RECIPES_URL, payload, format="json")
+        res = self.client.post(reverse("recipe-list"), payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
         recipe = Recipe.objects.get(id=res.data["id"])
@@ -71,8 +76,7 @@ class RecipeApiTests(TestCase):
             "description": "Edited description",
         }
 
-        url = detail_url(recipe.id)
-        self.client.patch(url, payload)
+        self.client.patch(reverse("recipe-detail", args=[recipe.id]), payload)
 
         recipe.refresh_from_db()
         self.assertEqual(recipe.description, payload["description"])
@@ -91,8 +95,9 @@ class RecipeApiTests(TestCase):
             "ingredients": [],
         }
 
-        url = detail_url(recipe.id)
-        self.client.put(url, payload, format="json")
+        self.client.put(
+            reverse("recipe-detail", args=[recipe.id]), payload, format="json"
+        )
 
         recipe.refresh_from_db()
         self.assertEqual(recipe.name, payload["name"])
@@ -106,12 +111,10 @@ class RecipeApiTests(TestCase):
             steps="1. Cook, 2. Eat",
         )
 
-        url = detail_url(recipe.id)
-        res = self.client.delete(url)
+        res = self.client.delete(reverse("recipe-detail", args=[recipe.id]))
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
 
-        url = detail_url(recipe.id)
-        res = self.client.get(url)
+        res = self.client.get(reverse("recipe-detail", args=[recipe.id]))
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_upload_image_to_recipe(self):
@@ -121,13 +124,15 @@ class RecipeApiTests(TestCase):
             steps="1. Cook, 2. Eat",
         )
 
-        url = detail_url(recipe.id)
         with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
             img = Image.new("RGB", (10, 10))
             img.save(ntf, format="JPEG")
             ntf.seek(0)
-            res = self.client.patch(url, {"image": ntf}, format="multipart")
+            res = self.client.patch(
+                reverse("recipe-detail", args=[recipe.id]),
+                {"image": ntf},
+                format="multipart",
+            )
 
         recipe.refresh_from_db()
-        print(recipe.image)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
