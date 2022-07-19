@@ -22,6 +22,6 @@ class RecipeFactory(factory.django.DjangoModelFactory):
     name = faker.dish()
     description = faker.dish_description()
     steps = [faker.sentence() for _ in range(3)]
-    ingredients = factory.RelatedFactory(
-        IngredientFactory, factory_related_name="recipe"
+    ingredients = factory.RelatedFactoryList(
+        IngredientFactory, factory_related_name="recipe", size=2
     )

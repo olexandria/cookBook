@@ -19,6 +19,7 @@ class RecipeApiTestsWithFactories(TestCase):
         res = self.client.get(reverse("recipe-list"))
         serializer = RecipeSerializer(recipe)
         print(serializer.data)
+
         self.assertEqual(200, res.status_code)
         self.assertContains(res, recipe.name)
 
@@ -34,15 +35,12 @@ class RecipeApiTests(TestCase):
             "steps": "1. Cook, 2. Eat",
             "ingredients": [],
         }
+
         res = self.client.post(reverse("recipe-list"), payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
     def test_view_recipe_detail(self):
-        recipe = Recipe.objects.create(
-            name="Sample recipe",
-            description="Sample description",
-            steps="1. Cook, 2. Eat",
-        )
+        recipe = RecipeFactory()
 
         res = self.client.get(reverse("recipe-detail", args=[recipe.id]))
 
@@ -66,27 +64,21 @@ class RecipeApiTests(TestCase):
         self.assertEqual(Ingredient.objects.count(), 1)
 
     def test_partial_update_recipe(self):
-        recipe = Recipe.objects.create(
-            name="Sample recipe",
-            description="Sample description",
-            steps="1. Cook, 2. Eat",
-        )
+        recipe = RecipeFactory()
+        recipe_name = recipe.name
 
         payload = {
             "description": "Edited description",
         }
 
         self.client.patch(reverse("recipe-detail", args=[recipe.id]), payload)
-
         recipe.refresh_from_db()
+
         self.assertEqual(recipe.description, payload["description"])
+        self.assertEqual(recipe_name, recipe.name)
 
     def test_full_update_recipe(self):
-        recipe = Recipe.objects.create(
-            name="Sample recipe",
-            description="Sample description",
-            steps="1. Cook, 2. Eat",
-        )
+        recipe = RecipeFactory()
 
         payload = {
             "name": "Edited recipe",
@@ -98,11 +90,12 @@ class RecipeApiTests(TestCase):
         self.client.put(
             reverse("recipe-detail", args=[recipe.id]), payload, format="json"
         )
-
         recipe.refresh_from_db()
+
         self.assertEqual(recipe.name, payload["name"])
         self.assertEqual(recipe.description, payload["description"])
         self.assertEqual(recipe.steps, payload["steps"])
+        self.assertEqual(recipe.ingredients.count(), 0)
 
     def test_delete_recipe(self):
         recipe = Recipe.objects.create(
