@@ -1,58 +1,97 @@
 import {useEffect, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import './update-recipe-form.style.scss'
+import './create-update-recipe-form.style.scss'
 import axios from 'axios';
+import {IoClose} from "react-icons/io5";
 
-const UpdateRecipeForm = () => {
+const CreateUpdateRecipeForm = () => {
     let navigate = useNavigate();
     const {id} = useParams();
 
-    const [image, setImage] = useState(null)
     const [name, setName] = useState('')
     const [description, setDescription] = useState('')
+    const [ingredients, setIngredients] = useState([]);
+    const [steps, setSteps] = useState('')
+    const [image, setImage] = useState('');
+
     const [ingredientName, setIngredientName] = useState('')
     const [ingredientAmount, setIngredientAmount] = useState('')
-    const [steps, setSteps] = useState('')
+
+    const [imageFile, setImageFile] = useState(null)
+
+    const EditRecipeTitle = "Edit Recipe";
+    const CreateRecipeTitle = "Create Your Own Recipe";
 
     const loadRecipe = async () => {
         const {data} = await axios.get(`http://localhost:8000/recipes/${id}/`)
-        console.log(data)
 
         setImage(data.image);
         setName(data.name);
         setDescription(data.description);
         setSteps(data.steps);
-        setIngredientName(data.ingredients[0].name);
-        setIngredientAmount(data.ingredients[0].amount);
+        setIngredients(data.ingredients);
     }
 
     useEffect(() => {
-        loadRecipe()
+        if (id !== undefined) {
+            loadRecipe()
+        }
     }, [])
+
+    const handleAddIngredient = (e, name, amount) => {
+        e.preventDefault();
+
+        const newIngredients = ingredients.concat({name, amount});
+        setIngredients(newIngredients);
+    }
+
+    const handleXClick = (ingredient) => {
+        setIngredients(ingredients.filter((x) => x !== ingredient));
+    };
 
     const handleCancel = () => {
         navigate('/');
     };
 
-    const UpdateRecipe = (e) => {
+    const CreateUpdateRecipe = (e) => {
         e.preventDefault();
-        const obj = {name: ingredientName, amount: ingredientAmount};
 
-        axios.put(
-            `http://localhost:8000/recipes/${id}/`,
-            {name, description, ingredients: [obj], steps, image},
-        )
-            .then(response => {
-                console.log(response.data);
+        let ImageUploadPromise = new Promise((resolve) => {
+            if (imageFile) {
+                axios.post('http://localhost:8000/images/', {image: imageFile},
+                    {
+                        headers: {
+                            "Content-Type": "multipart/form-data",
+                        }
+                    }).then((response) => {
+                        console.log(response);
+                        resolve(response.data.image);
+                    }
+                )
+            } else {
+                resolve(image);
+            }
+        })
+
+        ImageUploadPromise.then((response) => {
+                let newImageUrl = response;
+                if (id !== undefined) {
+                    axios.put(`http://localhost:8000/recipes/${id}/`,
+                        {name, description, ingredients, steps, image: newImageUrl})
+                } else {
+                    axios.post(`http://localhost:8000/recipes/`,
+                        {name, description, ingredients, steps, image: newImageUrl})
+                }
                 navigate('/');
-            })
+            }
+        )
     }
 
     return (
-        <form onSubmit={UpdateRecipe}>
+        <form onSubmit={CreateUpdateRecipe}>
             <div className='form-container'>
                 <div className='header-title-container'>
-                    <h1>Update Recipe</h1>
+                    <h1>{id !== undefined ? EditRecipeTitle : CreateRecipeTitle}</h1>
                 </div>
                 <div className='form-container'>
                     <div className='field-container'>
@@ -68,8 +107,7 @@ const UpdateRecipeForm = () => {
 
                     <div className='field-container'>
                         <label className='label-container'>Description</label>
-                        <input
-                            type="text"
+                        <textarea
                             className='bigger-form-input'
                             name="description"
                             value={description}
@@ -79,6 +117,22 @@ const UpdateRecipeForm = () => {
 
                     <div className='ingredient-field-container'>
                         <label className='label-container'>Ingredients</label>
+                        <span className="ingredients-list-container">
+                            {ingredients.map((ingredient) => (
+                                <span
+                                    key={ingredient}
+                                    className="ingredient-in-list-container"
+                                >
+                                    <span
+                                        className="ingredients-text-in-list-container">{ingredient.name} - {ingredient.amount}
+                                    </span>
+                                    <IoClose className="close-icon" onClick={() => handleXClick(ingredient)}/>
+                                </span>
+                            ))}
+                        </span>
+                        {/*<ul>{ingredients.map((ingredient) => (*/}
+                        {/*    <li key={ingredient.id}>{ingredient.name} - {ingredient.amount}</li>))}*/}
+                        {/*</ul>*/}
                         <div>
                             <input
                                 type="text"
@@ -96,13 +150,15 @@ const UpdateRecipeForm = () => {
                                 value={ingredientAmount}
                                 onChange={(e) => setIngredientAmount(e.target.value)}
                             />
+                            <button className='save-button-style'
+                                    onClick={(e) => handleAddIngredient(e, ingredientName, ingredientAmount)}>Add
+                            </button>
                         </div>
                     </div>
 
                     <div className='field-container'>
                         <label className='label-container'>Steps</label>
-                        <input
-                            type="text"
+                        <textarea
                             className='bigger-form-input'
                             name="steps"
                             value={steps}
@@ -112,16 +168,19 @@ const UpdateRecipeForm = () => {
                     <div className='field-container'>
                         <label className='label-container'>Upload Image</label>
                         <div>
-                            <input type="file" id="upload-image" hidden name="image"
-                                   onChange={(e) => setImage(e.target.files[0])}
+                            <input type="file" id="upload-image" hidden name="imageFile"
+                                   onChange={(e) => setImageFile(e.target.files[0])}
                             />
+                            <input type="hidden" name="image"
+                                   onChange={(e) => setImage(e.target.value)}/>
                             <label className='upload-image-button' htmlFor="upload-image">Choose file</label>
-                            <span id="file-chosen">No file chosen</span>
+                            <span id="file-chosen">{image != null ? image.split("/").pop() : ''}</span>
                         </div>
                     </div>
                     <div className='button-container'>
                         <button type='submit' onClick={handleCancel} className='cancel-button-style'>Cancel</button>
-                        <button type='submit' className='update-button-style'>Update</button>
+                        <button type='submit'
+                                className='update-button-style'>{id !== undefined ? "Update" : "Save"}</button>
                     </div>
                 </div>
             </div>
@@ -129,4 +188,4 @@ const UpdateRecipeForm = () => {
     );
 };
 
-export default UpdateRecipeForm;
+export default CreateUpdateRecipeForm;

@@ -1,6 +1,6 @@
 import './nav-bar.style.css'
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import {Link} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {useState} from "react";
 
 const NavBar = () => {
@@ -29,7 +29,7 @@ const NavBar = () => {
                     />
                 </form>
             </div>
-            <Link to="/create_recipe">
+            <Link to="/recipes/create">
                 <div className="button-create-recipe-container">
                     <button className="button-create-recipe">Create Recipe</button>
                 </div>

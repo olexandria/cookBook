@@ -2,8 +2,7 @@ import {Route, Routes} from "react-router-dom";
 import Home from "./Home";
 import Searched from "./Searched";
 import Recipe from "./Recipe";
-import CreateRecipe from "./CreateRecipe";
-import UpdateRecipe from "./UpdateRecipe";
+import CreateUpdateRecipe from "./CreateUpdateRecipe";
 
 function Pages() {
     return (
@@ -11,8 +10,8 @@ function Pages() {
             <Route path='/' element={<Home/>}/>
             <Route path='/searched/:search' element={<Searched/>}/>
             <Route path='/recipes/:id' element={<Recipe/>}/>
-            <Route path='/create_recipe' element={<CreateRecipe/>}/>
-            <Route path='/recipes/:id/update' element={<UpdateRecipe/>}/>
+            <Route path='/recipes/create' element={<CreateUpdateRecipe/>}/>
+            <Route path='/recipes/:id/update' element={<CreateUpdateRecipe/>}/>
         </Routes>
     );
 }
