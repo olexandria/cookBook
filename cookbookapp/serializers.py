@@ -1,12 +1,18 @@
 from drf_writable_nested import WritableNestedModelSerializer
 from rest_framework import serializers
-from .models import Recipe, Ingredient
+from .models import Recipe, Ingredient, RecipeImage
 
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ("name", "amount")
+
+
+class RecipeImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RecipeImage
+        fields = "__all__"
 
 
 class RecipeSerializer(WritableNestedModelSerializer):
