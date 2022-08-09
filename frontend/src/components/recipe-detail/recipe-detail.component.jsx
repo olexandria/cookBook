@@ -1,28 +1,49 @@
 import './recipe-detail.style.css'
 import {Link, useNavigate} from "react-router-dom";
 import axios from "axios";
+import {useState} from "react";
+import DialogDeleteRecipe from "../delete-recipe/delete-recipe.component";
 
 const RecipeDetail = ({recipe}) => {
     const {id, name, description, ingredients, steps, image} = recipe;
     let navigate = useNavigate();
 
-    const deleteRecipe = async (id) => {
-        await axios.delete(`http://localhost:8000/recipes/${id}`)
-            .then(response => {
-                console.log(response.data);
-                navigate('/');
-            })
+    const [dialog, setDialog] = useState({
+        isOpen: false,
+    });
+
+    const handleDialog = (isOpen) => {
+        setDialog({
+            isOpen,
+        });
+    };
+
+    const handleDelete = () => {
+        handleDialog(true);
+    };
+
+    const areUSureDelete = async (choiceYes) => {
+        if (choiceYes) {
+            await axios.delete(`http://localhost:8000/recipes/${id}/`)
+                .then(response => {
+                    console.log(response.data);
+                    navigate('/');
+                })
+            handleDialog(false);
+        } else {
+            handleDialog(false);
+        }
     };
 
     return (
         <div key={id} className="recipe-detail-container">
             <div className="image-detail-container">
-                <img src={image} className="image1"></img>
+                <img src={image} className="image1"/>
                 <div className="buttons-detail-container">
                     <Link to={`/recipes/${id}/update`}>
                         <button className="button-detail-style">Edit</button>
                     </Link>
-                    <button className="button-detail-style" onClick={() => deleteRecipe(id)}>Delete</button>
+                    <button className="button-detail-style" onClick={() => handleDelete()}>Delete</button>
                 </div>
             </div>
             <div className="text-detail-container">
@@ -45,6 +66,11 @@ const RecipeDetail = ({recipe}) => {
                     </div>
                 </div>)}
             </div>
+            {dialog.isOpen && (
+                <DialogDeleteRecipe
+                    onDialog={areUSureDelete}
+                />
+            )}
         </div>
     );
 }
