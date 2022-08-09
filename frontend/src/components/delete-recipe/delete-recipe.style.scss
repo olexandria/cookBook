@@ -1,0 +1,72 @@
+.delete-dialog-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.dialog-content-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+}
+
+.message-style {
+  color: #216100;
+  font-family: "Helvetica";
+  font-weight: bold;
+  font-size: 22px;
+  padding-bottom: 10px;
+
+}
+
+.dialog-buttons-container {
+  display: flex;
+  align-items: center;
+}
+
+.button-delete {
+  width: 100px;
+  height: 30px;
+  margin-right: 15px;
+  padding: 0px 10px 0px 10px;
+  background: #caf0b6;
+  color: #232323;
+  border-color: #6b8859;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 3px 3px 3px 3px;
+  font-family: "Helvetica";
+  font-weight: bold;
+  font-size: 18px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.button-cancel {
+  width: 100px;
+  height: 30px;
+  margin-right: 15px;
+  padding: 0px 10px 0px 10px;
+  background: #d5d5d5;
+  color: #232323;
+  border-color: #6b8859;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 3px 3px 3px 3px;
+  font-family: "Helvetica";
+  font-weight: bold;
+  font-size: 18px;
+  text-align: center;
+  cursor: pointer;
+}
